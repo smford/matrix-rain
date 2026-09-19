@@ -410,29 +410,46 @@
       let columns = 0;
       let drops = [];
 
+      // Cinematic 24 FPS frame rate throttling
+      const targetFPS = 24;
+      const frameInterval = 1000 / targetFPS;
+      let lastTime = 0;
+
       function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         columns = Math.floor(canvas.width / fontSize);
         drops = [];
         for (let i = 0; i < columns; i++) {
-          drops[i] = Math.floor(Math.random() * -50);
+          drops[i] = {
+            y: Math.floor(Math.random() * -60),
+            speed: 0.3 + Math.random() * 0.45 // Natural falling speed
+          };
         }
       }
 
       window.addEventListener('resize', resize);
       resize();
 
-      function draw() {
-        ctx.fillStyle = 'rgba(10, 16, 10, 0.08)';
+      function draw(currentTime) {
+        requestAnimationFrame(draw);
+
+        if (!currentTime) return;
+        const delta = currentTime - lastTime;
+        if (delta < frameInterval) return;
+        lastTime = currentTime - (delta % frameInterval);
+
+        // Soft fading trail
+        ctx.fillStyle = 'rgba(10, 16, 10, 0.12)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.font = fontSize + 'px monospace';
 
         for (let i = 0; i < drops.length; i++) {
+          const drop = drops[i];
           const text = characters[Math.floor(Math.random() * characters.length)];
           const x = i * fontSize;
-          const y = drops[i] * fontSize;
+          const y = Math.floor(drop.y) * fontSize;
 
           // Head glowing white/mint
           ctx.fillStyle = '#ebffeb';
@@ -440,17 +457,17 @@
 
           // Body green
           ctx.fillStyle = '#45e545';
-          if (drops[i] > 1) {
+          if (drop.y > 1) {
             const prevText = characters[Math.floor(Math.random() * characters.length)];
             ctx.fillText(prevText, x, y - fontSize);
           }
 
-          if (y > canvas.height && Math.random() > 0.975) {
-            drops[i] = 0;
+          if (y > canvas.height && Math.random() > 0.98) {
+            drop.y = Math.floor(Math.random() * -30);
+            drop.speed = 0.3 + Math.random() * 0.45;
           }
-          drops[i]++;
+          drop.y += drop.speed;
         }
-        requestAnimationFrame(draw);
       }
 
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
