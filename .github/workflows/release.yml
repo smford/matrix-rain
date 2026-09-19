@@ -6,6 +6,13 @@ on:
       - main
     tags:
       - 'v*'
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'LICENSE'
+      - 'Formula/**'
+      - '.github/workflows/pages.yml'
+      - '.gitignore'
   workflow_dispatch:
     inputs:
       bump_type:
@@ -64,6 +71,16 @@ jobs:
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
           echo "Latest tag found: $LATEST_TAG"
 
+          # Verify that codebase files changed since the previous tag
+          if [ "$LATEST_TAG" != "v0.0.0" ] && [ -z "${{ github.event.inputs.bump_type }}" ]; then
+            CHANGED_CODE=$(git diff --name-only ${LATEST_TAG}..HEAD -- ':(exclude)docs' ':(exclude)*.md' ':(exclude)LICENSE' ':(exclude)Formula' ':(exclude).github/workflows/pages.yml' ':(exclude).gitignore')
+            if [ -z "$CHANGED_CODE" ]; then
+              echo "No codebase changes detected since $LATEST_TAG. Skipping release."
+              echo "skipped=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+
           VERSION=${LATEST_TAG#v}
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
           MAJOR=${MAJOR:-0}
@@ -108,12 +125,14 @@ jobs:
           echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
 
       - name: Set up Go
+        if: steps.semver.outputs.skipped != 'true'
         uses: actions/setup-go@v5
         with:
           go-version: '1.24'
           check-latest: true
 
       - name: Run GoReleaser
+        if: steps.semver.outputs.skipped != 'true'
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
