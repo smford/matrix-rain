@@ -2,7 +2,14 @@
 
 High-performance, authentic *The Matrix* digital rain simulator for the terminal, written in Go.
 
-![Matrix Rain](https://raw.githubusercontent.com/smford/matrix-rain/main/screenshot.png) <!-- optional preview -->
+[![CI](https://github.com/smford/matrix-rain/actions/workflows/ci.yml/badge.svg)](https://github.com/smford/matrix-rain/actions/workflows/ci.yml)
+[![Release](https://github.com/smford/matrix-rain/actions/workflows/release.yml/badge.svg)](https://github.com/smford/matrix-rain/releases)
+[![Pages](https://github.com/smford/matrix-rain/actions/workflows/pages.yml/badge.svg)](https://smford.github.io/matrix-rain/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+**Live Demo & Documentation**: [https://smford.github.io/matrix-rain/](https://smford.github.io/matrix-rain/)
+
+---
 
 ## Features
 
@@ -21,10 +28,32 @@ High-performance, authentic *The Matrix* digital rain simulator for the terminal
 
 ---
 
-## Installation & Build
+## Installation
 
-### Prerequisites
-- Go 1.24+
+### Via Homebrew (Recommended)
+
+Install directly using the [smford/homebrew-tap](https://github.com/smford/homebrew-tap):
+
+```bash
+brew tap smford/tap
+brew install matrix-rain
+```
+
+Or as a single command:
+
+```bash
+brew install smford/tap/matrix-rain
+```
+
+### Via Go Install
+
+```bash
+go install github.com/smford/matrix-rain/cmd/matrix-rain@latest
+```
+
+### Pre-built Binaries
+
+Download pre-compiled multi-architecture binaries (macOS Apple Silicon/Intel, Linux ARM64/AMD64, Windows) directly from the [GitHub Releases](https://github.com/smford/matrix-rain/releases) page.
 
 ### Build from source
 
@@ -43,7 +72,7 @@ The executable will be located at `./bin/matrix-rain`.
 Run with defaults:
 
 ```bash
-./bin/matrix-rain
+matrix-rain
 ```
 
 ### CLI Flags
@@ -62,13 +91,13 @@ Run with defaults:
 
 ```bash
 # Classic Matrix with high density at 60 FPS
-./bin/matrix-rain -density 75 -fps 60
+matrix-rain -density 75 -fps 60
 
 # Amber CRT phosphor style
-./bin/matrix-rain -color amber -charset matrix
+matrix-rain -color amber -charset matrix
 
 # Binary rain in cyberpunk cyan
-./bin/matrix-rain -color cyan -charset binary
+matrix-rain -color cyan -charset binary
 ```
 
 ---
@@ -82,6 +111,21 @@ Run with defaults:
 | `c` | Cycle color themes |
 | `+` / `-` | Increase / Decrease spawn density |
 | `r` | Reset active rain streams |
+
+---
+
+## CI/CD, Semantic Versioning & Release Pipeline
+
+1. **Automated Semantic Versioning**:
+   - Commits following [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `feat!:`) determine automatic semantic version bumps (`patch`, `minor`, `major`).
+   - Manual releases can be triggered via `workflow_dispatch` or git tag push (`git tag vX.Y.Z`).
+2. **Multi-Architecture Release Pipeline**:
+   - GoReleaser builds and packages binaries for Darwin (ARM64 & AMD64), Linux (ARM64 & AMD64), and Windows.
+   - Generates SHA256 checksums and automated release notes on GitHub Releases.
+3. **Automated Homebrew Tap Publishing**:
+   - The GoReleaser pipeline automatically pushes the updated formula and hashes to [smford/homebrew-tap](https://github.com/smford/homebrew-tap).
+4. **GitHub Pages Deployment**:
+   - Automatically builds and publishes the landing page at `https://smford.github.io/matrix-rain/` from `docs/`.
 
 ---
 
@@ -102,9 +146,18 @@ make lint
 
 ```
 matrix-rain/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml          # Tests, linting, race detection
+│       ├── pages.yml       # GitHub Pages automated deployment
+│       └── release.yml     # SemVer tagging, GoReleaser, Homebrew publish
 ├── cmd/
 │   └── matrix-rain/
 │       └── main.go         # CLI parsing, signal trapping, entrypoint
+├── docs/
+│   └── index.html          # Interactive landing page hosted on GitHub Pages
+├── Formula/
+│   └── matrix-rain.rb      # Reference Homebrew formula for smford/homebrew-tap
 ├── pkg/
 │   └── matrix/
 │       ├── chars.go        # Character sets & entropy generation
@@ -117,6 +170,7 @@ matrix-rain/
 │       ├── signal_windows.go # Windows resize fallback
 │       ├── theme.go        # 24-bit Truecolor palettes and gradient calculation
 │       └── theme_test.go   # Theme unit tests
+├── .goreleaser.yaml        # GoReleaser v2 release and Homebrew formula config
 ├── Makefile                # Build, test, lint, install
 └── README.md
 ```
