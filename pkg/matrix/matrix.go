@@ -183,7 +183,7 @@ func (e *Engine) resize(newW, newH int) {
 // step advances all columns by one frame.
 func (e *Engine) step() {
 	for _, col := range e.columns {
-		col.Update(e.height, e.pool, e.cfg.Density)
+		col.Update(e.height, e.pool, e.cfg.Density, e.cfg.SpeedScale)
 	}
 }
 
@@ -278,12 +278,18 @@ func (e *Engine) handleInput(key byte) bool {
 		e.themeIndex = (e.themeIndex + 1) % len(AllThemes)
 		e.theme = AllThemes[e.themeIndex]
 
-	case '+', '=': // Increase density/speed
+	case '+', '=': // Increase speed & density
+		if e.cfg.SpeedScale < 3.0 {
+			e.cfg.SpeedScale += 0.2
+		}
 		if e.cfg.Density <= 90 {
 			e.cfg.Density += 10
 		}
 
-	case '-', '_': // Decrease density/speed
+	case '-', '_': // Decrease speed & density
+		if e.cfg.SpeedScale > 0.3 {
+			e.cfg.SpeedScale -= 0.2
+		}
 		if e.cfg.Density >= 20 {
 			e.cfg.Density -= 10
 		}

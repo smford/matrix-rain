@@ -58,8 +58,11 @@ func NewDrop(height int, pool []rune) *Drop {
 }
 
 // Update advances the drop's position and mutates characters along the trail.
-func (d *Drop) Update(pool []rune) {
-	d.Y += d.Speed
+func (d *Drop) Update(pool []rune, speedScale float64) {
+	if speedScale <= 0 {
+		speedScale = 1.0
+	}
+	d.Y += d.Speed * speedScale
 	currentHeadRow := int(d.Y)
 
 	// If head crossed one or more integer rows, shift glyphs forward
@@ -102,12 +105,12 @@ func NewColumn() *Column {
 }
 
 // Update updates all drops in this column, removes off-screen drops, and spawns new ones.
-func (c *Column) Update(height int, pool []rune, densityPercent int) {
+func (c *Column) Update(height int, pool []rune, densityPercent int, speedScale float64) {
 	active := c.Drops[:0]
 	canSpawn := true
 
 	for _, d := range c.Drops {
-		d.Update(pool)
+		d.Update(pool, speedScale)
 		if !d.IsOffScreen(height) {
 			active = append(active, d)
 			// If drop head is still near top, delay spawning next drop

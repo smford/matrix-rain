@@ -431,9 +431,45 @@
       window.addEventListener('resize', resize);
       resize();
 
+      // Interactive state
+      let isPaused = false;
+      let currentThemeIdx = 0;
+      const themes = [
+        { head: '#ebffeb', body: '#45e545' }, // Green
+        { head: '#f0ffff', body: '#00e5e5' }, // Cyan
+        { head: '#fffadc', body: '#ffb428' }, // Amber
+        { head: '#ffe6e6', body: '#ff3c3c' }, // Red
+        { head: '#ffffff', body: '#b4b4b4' }, // White
+      ];
+
+      window.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        if (e.key === ' ' || e.code === 'Space') {
+          e.preventDefault();
+          isPaused = !isPaused;
+        } else if (e.key === '+' || e.key === '=') {
+          for (let i = 0; i < drops.length; i++) {
+            drops[i].speed = Math.min(3.0, drops[i].speed + 0.15);
+          }
+        } else if (e.key === '-' || e.key === '_') {
+          for (let i = 0; i < drops.length; i++) {
+            drops[i].speed = Math.max(0.1, drops[i].speed - 0.15);
+          }
+        } else if (e.key === 'c' || e.key === 'C') {
+          currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+        } else if (e.key === 'r' || e.key === 'R') {
+          for (let i = 0; i < columns; i++) {
+            drops[i].y = Math.floor(Math.random() * -40);
+            drops[i].speed = 0.3 + Math.random() * 0.45;
+          }
+        }
+      });
+
       function draw(currentTime) {
         requestAnimationFrame(draw);
 
+        if (isPaused) return;
         if (!currentTime) return;
         const delta = currentTime - lastTime;
         if (delta < frameInterval) return;
@@ -445,18 +481,20 @@
 
         ctx.font = fontSize + 'px monospace';
 
+        const theme = themes[currentThemeIdx];
+
         for (let i = 0; i < drops.length; i++) {
           const drop = drops[i];
           const text = characters[Math.floor(Math.random() * characters.length)];
           const x = i * fontSize;
           const y = Math.floor(drop.y) * fontSize;
 
-          // Head glowing white/mint
-          ctx.fillStyle = '#ebffeb';
+          // Head glowing highlight
+          ctx.fillStyle = theme.head;
           ctx.fillText(text, x, y);
 
-          // Body green
-          ctx.fillStyle = '#45e545';
+          // Body color
+          ctx.fillStyle = theme.body;
           if (drop.y > 1) {
             const prevText = characters[Math.floor(Math.random() * characters.length)];
             ctx.fillText(prevText, x, y - fontSize);

@@ -72,11 +72,17 @@ func TestEngineHandleInput(t *testing.T) {
 		t.Errorf("expected theme to change after 'c'")
 	}
 
-	// Test density controls
+	// Test speed and density controls
 	origDensity := engine.cfg.Density
+	origSpeed := engine.cfg.SpeedScale
 	engine.handleInput('+')
-	if engine.cfg.Density <= origDensity {
-		t.Errorf("expected density to increase after '+'")
+	if engine.cfg.Density <= origDensity || engine.cfg.SpeedScale <= origSpeed {
+		t.Errorf("expected density and speed to increase after '+'")
+	}
+
+	engine.handleInput('-')
+	if engine.cfg.Density > origDensity || engine.cfg.SpeedScale > origSpeed {
+		t.Errorf("expected density and speed to decrease after '-'")
 	}
 
 	// Test quit keys

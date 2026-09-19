@@ -28,7 +28,7 @@ func TestDropUpdateAndOffScreen(t *testing.T) {
 	drop := NewDrop(20, pool)
 	initialY := drop.Y
 
-	drop.Update(pool)
+	drop.Update(pool, 1.0)
 	if drop.Y <= initialY {
 		t.Errorf("drop Y should advance after Update, got %f <= %f", drop.Y, initialY)
 	}
@@ -50,7 +50,7 @@ func TestColumnLifecycle(t *testing.T) {
 
 	// Force spawn with 100% density
 	for i := 0; i < 50; i++ {
-		col.Update(30, pool, 100)
+		col.Update(30, pool, 100, 1.0)
 		if len(col.Drops) > 0 {
 			break
 		}
