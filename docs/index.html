@@ -80,6 +80,15 @@
       background: var(--bg-card);
       color: var(--primary);
       backdrop-filter: blur(10px);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .badge:hover {
+      border-color: var(--border-bright);
+      box-shadow: 0 0 14px oklch(0.85 0.24 145 / 0.35);
+      color: #fff;
+      transform: translateY(-1px);
     }
 
     h1 {
@@ -295,13 +304,18 @@
 
   <main class="container">
     <header>
-      <div class="badge">v1.0.0 • Pure Go • Zero Bloat</div>
+      <a href="https://github.com/smford/matrix-rain/releases" class="badge release-link" target="_blank" rel="noopener" title="View releases on GitHub">
+        <span class="release-version">v1.0.0</span> • Pure Go • Zero Bloat
+      </a>
       <h1>matrix<span>-rain</span></h1>
       <p class="subtitle">Authentic green digital rain terminal simulator with half-width Katakana, in-place mutations, 24-bit Truecolor gradients, and zero terminal leaks.</p>
       
       <div class="actions">
         <a href="https://github.com/smford/matrix-rain" class="btn btn-primary" target="_blank" rel="noopener">
           View on GitHub
+        </a>
+        <a href="https://github.com/smford/matrix-rain/releases" class="btn btn-secondary release-link" target="_blank" rel="noopener">
+          Release Notes (<span class="release-version">v1.0.0</span>)
         </a>
         <a href="https://github.com/smford/homebrew-tap" class="btn btn-secondary" target="_blank" rel="noopener">
           Homebrew Tap
@@ -395,7 +409,7 @@
     </section>
 
     <footer>
-      <p>matrix-rain is open source under the MIT License • Maintained by <a href="https://github.com/smford" style="color: var(--primary); text-decoration: none;">smford</a></p>
+      <p>matrix-rain <a href="https://github.com/smford/matrix-rain/releases" class="release-link" style="color: var(--primary); text-decoration: none;"><span class="release-version">v1.0.0</span></a> is open source under the MIT License • Maintained by <a href="https://github.com/smford" style="color: var(--primary); text-decoration: none;">smford</a></p>
     </footer>
   </main>
 
@@ -511,6 +525,34 @@
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         requestAnimationFrame(draw);
       }
+    })();
+
+    // Live version sync with GitHub Releases API (progressive enhancement fallback)
+    (function syncLatestRelease() {
+      fetch('https://api.github.com/repos/smford/matrix-rain/releases/latest', {
+        headers: { 'Accept': 'application/vnd.github.v3+json' }
+      })
+        .then(function(res) {
+          return res.ok ? res.json() : null;
+        })
+        .then(function(data) {
+          if (!data || !data.tag_name) return;
+          var tag = data.tag_name.startsWith('v') ? data.tag_name : ('v' + data.tag_name);
+          var releaseUrl = data.html_url || ('https://github.com/smford/matrix-rain/releases/tag/' + tag);
+          
+          var versionEls = document.querySelectorAll('.release-version');
+          versionEls.forEach(function(el) {
+            el.textContent = tag;
+          });
+          
+          var releaseLinks = document.querySelectorAll('.release-link');
+          releaseLinks.forEach(function(link) {
+            link.href = releaseUrl;
+          });
+        })
+        .catch(function() {
+          // Gracefully fallback: statically baked version in HTML remains intact
+        });
     })();
   </script>
 </body>

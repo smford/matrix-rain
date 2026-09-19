@@ -5,7 +5,7 @@ COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 DATE ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 LDFLAGS := -s -w -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(DATE)
 
-.PHONY: all build run test test-race lint clean install
+.PHONY: all build run test test-race lint clean install update-docs
 
 all: build
 
@@ -30,3 +30,6 @@ clean:
 
 install: build
 	cp $(BIN_DIR)/$(BINARY_NAME) $(GOPATH)/bin/$(BINARY_NAME)
+
+update-docs:
+	python3 scripts/update-docs-version.py $(VERSION)
