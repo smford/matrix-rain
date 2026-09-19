@@ -1,0 +1,95 @@
+package matrix
+
+import (
+	"bytes"
+	"testing"
+)
+
+func TestEngineInitAndResize(t *testing.T) {
+	var buf bytes.Buffer
+	cfg := DefaultConfig()
+	engine := NewEngine(cfg, &buf)
+
+	if engine.theme.Name != "green" {
+		t.Errorf("expected default theme green, got %s", engine.theme.Name)
+	}
+
+	engine.resize(80, 24)
+	if engine.width != 80 || engine.height != 24 {
+		t.Errorf("resize mismatch: width=%d, height=%d", engine.width, engine.height)
+	}
+	if len(engine.columns) != 80 {
+		t.Errorf("columns length mismatch: got %d, want 80", len(engine.columns))
+	}
+
+	// Shrink resize
+	engine.resize(40, 10)
+	if len(engine.columns) != 40 {
+		t.Errorf("columns length mismatch on shrink: got %d, want 40", len(engine.columns))
+	}
+}
+
+func TestEngineRender(t *testing.T) {
+	var buf bytes.Buffer
+	cfg := DefaultConfig()
+	engine := NewEngine(cfg, &buf)
+	engine.resize(10, 5)
+
+	// Step a few times to generate drops
+	for i := 0; i < 20; i++ {
+		engine.step()
+	}
+
+	engine.render()
+	output := buf.String()
+	if len(output) == 0 {
+		t.Errorf("expected render output, got empty buffer")
+	}
+}
+
+func TestEngineHandleInput(t *testing.T) {
+	var buf bytes.Buffer
+	cfg := DefaultConfig()
+	engine := NewEngine(cfg, &buf)
+
+	// Test pause toggle
+	if engine.paused {
+		t.Errorf("initially should not be paused")
+	}
+	engine.handleInput(' ')
+	if !engine.paused {
+		t.Errorf("should be paused after pressing space")
+	}
+	engine.handleInput(' ')
+	if engine.paused {
+		t.Errorf("should be unpaused after pressing space again")
+	}
+
+	// Test theme cycling
+	origTheme := engine.theme.Name
+	engine.handleInput('c')
+	if engine.theme.Name == origTheme {
+		t.Errorf("expected theme to change after 'c'")
+	}
+
+	// Test density controls
+	origDensity := engine.cfg.Density
+	engine.handleInput('+')
+	if engine.cfg.Density <= origDensity {
+		t.Errorf("expected density to increase after '+'")
+	}
+
+	// Test quit keys
+	if !engine.handleInput('q') {
+		t.Errorf("expected 'q' to return true (exit)")
+	}
+	if !engine.handleInput('Q') {
+		t.Errorf("expected 'Q' to return true (exit)")
+	}
+	if !engine.handleInput(3) { // Ctrl+C
+		t.Errorf("expected Ctrl+C (3) to return true (exit)")
+	}
+	if !engine.handleInput(27) { // ESC
+		t.Errorf("expected ESC (27) to return true (exit)")
+	}
+}
